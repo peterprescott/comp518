@@ -1,0 +1,181 @@
+@startuml
+title Entity-Relationship Diagram
+skinparam linetype polyline
+
+class Organization <<O, white>>{
+# **org_id**: INT(10)
++ org_name: VARCHAR(32)
+org_icon: TINYBLOB()
+# org_address: Address.address_id (FK)
+---
+}
+
+class VirtualMachine <<M, white>>{
+# **mac_id**: INT(10)
++ capability: VARCHAR(512)
+# org: Organization.org_id (FK)
+---
+}
+
+
+class Address <<A, white>>{
+# **address_id** INT(10)
++address_number: SMALLINT(2)
+address_street: VARCHAR(64)
+address_city: VARCHAR(16)
++address_postcode: VARCHAR(8)
+validated: BOOLEAN()
+location: GEOMETRY(POINT)
+---
+}
+
+class Account <<U, yellow>>{
+# **user_id**: INT(10)
++ username: VARCHAR(16)
++ email: VARCHAR(32)
++ password_hash: VARCHAR(512)
+first_name: VARCHAR(32)
+last_name: VARCHAR(32)
+gender: VARCHAR(8)
+phone_number: VARCHAR(16)
++birth_date: DATETIME()
++two_fac_auth: BOOLEAN()
+profile_picture: BLOB()
+---
+}
+
+class Customer <<U, yellow>>{
++ payment_card: INT(16)
+# home_address: Address.address_id (FK)
+
+---
+}
+
+class Developer <<U, yellow>>{
+# org: Organization.org_id (FK)
+# office_address: Address.address_id (FK)
+# supervisor: Account.user_id (FK)
+---
+}
+
+class Product <<P, pink>>{
+# **product_id**: INT(10)
++ title: VARCHAR(32)
++ thumbnail: BLOB()
++ created: TIMESTAMP()
+# dev_owner: Account.user_id (FK)
++ release_date: DATETIME()
+---
+}
+
+class Music <<P, pink>>{
++song_file: MEDIUMBLOB()
+album_name: VARCHAR(32)
+---
+}
+
+class Book <<P, pink>>{
++book_file: MEDIUMTEXT()
+publisher: VARCHAR(32)
+isbn: INT(13)
+---
+}
+
+class Movie <<P, pink>>{
++movie_file: LONGBLOB()
++age_rating: INT(2)
+---
+}
+
+class Image <<P, pink>>{
++img_file: MEDIUMBLOB()
++img_description: VARCHAR(64)
+---
+}
+
+class Artist <<A, white>>{
+# **artist_id**: INT(10)
+first_name: VARCHAR(32)
++ last_name: VARCHAR(32)
+picture: BLOB()
+bio: VARCHAR(256)
+---
+}
+
+class Lookup <<L, white>>{
+# **lookup_id**: INT(10)
+# product_id: Product.product_id (FK)
+# artist_id: Artist.artist_id (FK)
+role: VARCHAR(32)
+---
+}
+
+Product "1..1" - "1..*" Artist: By >
+(Product, Artist) .. Lookup
+
+
+Product <|-- Music
+Product <|-- Book
+Product <|-- Movie: {Mandatory, Or}
+Product <|-- Image
+
+
+Account <|-- Developer: {Mandatory, And}
+Account <|-- Customer
+
+
+Developer "0..1" -- "0..12" Developer : Supervises >
+
+VirtualMachine "0..*" --"1..1" Organization : Maintains <
+Customer "1..1" -- "1..5" VirtualMachine: Registers >
+Product "1..1" -- "1..1" VirtualMachine: Runs On >
+(Customer, VirtualMachine) .. Registration
+class Registration <<R, white>>{
+# **reg_id** INT(10)
+# mac_id: VirtualMachine.mac_id (FK)
+# customer_id: Account.user_id (FK)
++ reg_time: TIMESTAMP()
+---
+}
+
+Developer "0..*" -- "1..1" Address: Works at >
+Customer "1..*" -- "1..1" Address: Lives at >
+Organization "1..1" -- "1..1" Address: Headquartered at >
+
+Developer "1..1" -- "0..*" Product: Updates >
+(Developer, Product) .. Update
+class Update <<U, white>>{
+# **update_id**: INT(10)
++ commit_message: VARCHAR(256)
++ update_time: TIMESTAMP()
+# dev_id: Account.user_id (FK)
+# product_id: Product.product_id (FK)
+---
+}
+
+Developer "1..1" -- "0..*" Product: Creates >
+
+Customer "1..1" -- "1..1" Product : Purchases >
+(Customer, Product) .. Purchase
+class Purchase <<P, white>>{
+# **purchase_id**: INT(10)
++ price_paid: DECIMAL(10,2)
++ discount_pct: INT(2)
++ purchase_time: TIMESTAMP()
+---
+}
+
+package "Key" <<Rectangle>>{
+    class Entity <<E, black>>{
+    # **primary_key**: DATATYPE()
+    + required_attribute: DATATYPE()
+    not_required: DATATYPE()
+    # foreign_key: Table.attribute (FK)
+    ---
+    }
+    class Generalization <<G, black>>{}
+    Entity --|> Generalization
+    Entity --- Entity: Relationship >
+}
+
+@enduml
