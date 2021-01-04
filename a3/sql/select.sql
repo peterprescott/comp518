@@ -42,17 +42,16 @@ and do not have any employee older than 40.
 
 PROMPT (C) Names of departments which sell blue products and do not have any employee older than 40
 
-SELECT D.dname
+SELECT DISTINCT D.dname
 FROM Department D, Product P, Sells S
 WHERE D.did = S.did
   AND S.pid = P.pid
   AND P.pcolor = 'blue'
-AND D.did IN (
-  SELECT W.did FROM WorksIn W
-  WHERE W.eid <> ANY(
-    SELECT E.eid FROM Employee E
-    WHERE E.age > 40
-  )
+AND D.did IN (SELECT D.did
+  FROM Employee E, WorksIn W, Department D
+  WHERE E.eid = W.eid AND W.did = D.did
+  GROUP BY D.did
+  HAVING MAX(E.age) < 41
 );
   
 
@@ -64,7 +63,7 @@ age of the oldest employee working in it.
 PROMPT (D) For each department, id and age of oldest employee.
 
 SELECT D.did, MAX(E.age)
-FROM Employee E, WorksIn W, Department AS D
+FROM Employee E, WorksIn W, Department D
 WHERE E.eid = W.eid AND W.did = D.did
 GROUP BY D.did;
 
