@@ -3,12 +3,12 @@ version: '3.1'
 services:
   db:
     container_name: a3
-    image: mysql
+    image: mysql:8.0.13
     restart: always
     environment:
-            MYSQL_ROOT_PASSWORD: 
+            MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: db 
     ports:
       - "3307:3306"
     volumes:
-      - $PWD:/home
+      - $PWD/sql:/home
